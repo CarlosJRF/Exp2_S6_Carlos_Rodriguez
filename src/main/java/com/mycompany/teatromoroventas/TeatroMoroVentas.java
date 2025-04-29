@@ -6,13 +6,15 @@ package com.mycompany.teatromoroventas;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.ArrayList;
 /**
  *
  * @author Lenovo
  */
 public class TeatroMoroVentas {
-    
-    static String opcionDeReserva; 
+
+        //bloque de varibles para reservar los asientos
+        static String opcionDeReserva; 
         static int asientoSel;
         static int filaSel;
         static boolean[] filaElegida;
@@ -27,10 +29,14 @@ public class TeatroMoroVentas {
         static boolean[] fila4 = new boolean[asientos];
         static boolean[] fila5 = new boolean[asientos];
         
+        //variables con los costos para agregarlos a la boleta
         static int valorVip = 30000;
         static int valorPreferencial = 15000;
         static int valorGeneral = 10000;
         static int compraEjecutada = 0;
+        static int condicionUsuario;
+        static int descuentoAplicado;
+        
 
 
         //bloque inicializa el timer
@@ -43,19 +49,46 @@ public class TeatroMoroVentas {
 
         }
         };//final del timertask
+        
+        static String tipoDeEntradaUsuario;
+        static int precioEntradaUsuario;
+        
+        
+        
+        
+    
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
-            for(;;){
+        class contenedor{
+        String tipoDeEntrada;
+        int precio;
+        int descuento;
+        int costoTotal;
+        
+        contenedor(String tipoDeEntrada, int precio, int descuento, int costoTotal){
+            this.tipoDeEntrada = tipoDeEntrada;
+            this.precio = precio;
+            this.descuento = descuento;
+            this.costoTotal = costoTotal;
+        }
+    }
+        
+        ArrayList<contenedor> listaResumenDeVenta = new ArrayList<>();
+        
+        
+            
+    
+    
+    
+    for(;;){
             System.out.println("...::: Bievenido al teatro Moro :::...");
-            System.out.println("Por favor seleccione una de las siguientes opciones para comenzar,"
-                    + " marcando el numero correspondiente del 1 al 5");
+            System.out.println("Por favor seleccione una de las siguientes opciones para comenzar");
             System.out.println(" ");
             System.out.println("1. Reservar entrada");
             System.out.println("2. Comprar entradas");
             System.out.println("3. Modificar una venta existente");
-            System.out.println("4. Imprimir boleta");
+            System.out.println("4. Emitir boleta");
             System.out.println("5. Salir");
 
             int opcion = pedirNumeroValido(sc, "Seleccione un numero del 1 al 5", 1, 5);
@@ -68,7 +101,7 @@ public class TeatroMoroVentas {
                     
                     //metodo que reserva el asiento
                     reservaAsiento(sc);
-                    
+                    //metodo que recibe el numero de filaSel
                     
                     if (filaElegida[indiceAsiento]) {
                         System.out.println("El asiento ya esta reservado");
@@ -80,15 +113,31 @@ public class TeatroMoroVentas {
 
                     }
                     imprimirPlano(fila1, fila2, fila3, fila4, fila5, filas, asientos);//reimprime el plano con la reserva
+                    
+                    System.out.println("Por favor indique si cumple con alguna de las siguientes condiciones");
+                    System.out.println("1. Estudiante");
+                    System.out.println("2. Adulto mayor");
+                    System.out.println("0. Ninguna de las anteriores");
+                    condicionUsuario = pedirNumeroValido(sc, "Por favor ingrese una de las opciones indicadas", 0, 2);
+                    switch (condicionUsuario) {
+                        case 1:
+                            descuentoAplicado = 10;
+                            break;
+                        case 2:
+                            descuentoAplicado = 15;
+                            break;
+                        case 0:
+                            break;
+                    }
+                    
 
                     //bloque de confirmacion de reserva
-                    System.out.println("Desea confirmar su reserva, indique (s) para confirmar (n) para volver al menu inicial");
-                    opcionDeReserva = pedirConfirmacion(sc, "indique (s) para confirmar (n) para volver al menu inicial");
+                    opcionDeReserva = pedirConfirmacion(sc, "Desea confirmar su reserva, indique (s) para confirmar (n) para volver al menu inicial");
                     if (opcionDeReserva.equalsIgnoreCase("s")) {
                         System.out.println("Su reserva fue hecha satisfatoriamente.");                       
                     } else {
                         System.out.println("Su reserva no a sido confirmada, se procedera a anular la reserva sino la confirma");
-                        timer.schedule(tareaDeCancelacion, 610000);
+                        timer.schedule(tareaDeCancelacion, 60000);
                         continue;
  
                     }
@@ -103,7 +152,13 @@ public class TeatroMoroVentas {
                     
                     if (filaElegida[indiceAsiento] == true) {
                         System.out.println("Usted posee la siguiente reserva");
-                        System.out.println("Fila seleccionada: " + filaSel + " numero de asiento: " + asientoSel + " reservado exitosamente.");
+                        contenedor nuevoContenedor = new contenedor(tipoDeEntradaUsuario, precioEntradaUsuario, descuentoAplicado, costoTotal(descuentoAplicado, precioEntradaUsuario));
+                        listaResumenDeVenta.add(nuevoContenedor);
+                        System.out.println("Fila seleccionada: " + filaSel + " numero de asiento: " + asientoSel);
+                        for(contenedor elemento : listaResumenDeVenta){
+                            System.out.println("Tipo de entrada: " + elemento.tipoDeEntrada + " precio: " + elemento.precio + "$ descuento: " + elemento.descuento + "% " + elemento.costoTotal + "$");
+                        }
+       
                         System.out.println("Indique el medio de pago por favor, ingresando el numero correspondiente");
                         System.out.println("1. Debito");
                         System.out.println("2. Credito");
@@ -168,28 +223,29 @@ public class TeatroMoroVentas {
                         continue;
                         
                 case 4://emitir boleta
+                        //Aqui hay que modificar la forma en como se presenta la boleta
                     if (filaElegida == null) {
                             System.out.println("No a realizado ninguna compra");
                             continue;
                         }
+                    
+                    
+                    
                     if (filaElegida[indiceAsiento] == true) {
                         if(compraEjecutada > 0){
-                        System.out.println("Fila seleccionada: " + filaSel + " numero de asiento: " + asientoSel + " reservado exitosamente.");  
-                        if(filaElegida == fila1 || filaElegida == fila2){
-                            System.out.println("El valor de su compra es de: " + valorVip + "$");
-                            continue;
-                        }else if(filaElegida == fila3 || filaElegida == fila4){
-                            System.out.println("El valor de su compra es de: " + valorPreferencial + "$");
-                            continue;
-                            
-                        }else if(filaElegida == fila5){
-                            System.out.println("El valor de su compra es de: " + valorGeneral + "$");
-                            continue;
+                        System.out.println("---------------------------------");
+                        System.out.println("           Teatro Moro           ");
+                        System.out.println("---------------------------------");
+                        System.out.println("Ubicacion: " + tipoDeEntradaUsuario + " fila: " + filaSel + " asiento numero: " + asientoSel);
+                        System.out.println("Costo base: " + precioEntradaUsuario);
+                        System.out.println("Descuento: " + descuentoAplicado + "%");
+                        System.out.println("Total: " + costoTotal(descuentoAplicado, precioEntradaUsuario) + "$");
+                        System.out.println("---------------------------------");
+                        System.out.println("   Gracias por su visita al teatro Moro  ");
+                        System.out.println("---------------------------------");
+                        
                         }
-                        }else{
-                            System.out.println("Tiene una reserva pendiente por comprar");
-                            continue;
-                        }
+                        break;
                         
                     }
                    
@@ -206,6 +262,9 @@ public class TeatroMoroVentas {
 
     
     
+    
+    
+    
 public static void reservaAsiento(Scanner sc){
     //solicitud de la fila al usuario
     filaSel = pedirNumeroValido(sc, "Seleccione un numero del 1 al 5", 1, 5);
@@ -218,18 +277,28 @@ public static void reservaAsiento(Scanner sc){
     switch (filaSel) {
         case 1:
             filaElegida = fila1;
+            tipoDeEntradaUsuario = "VIP";
+            precioEntradaUsuario = 30000;
             break;
         case 2:
             filaElegida = fila2;
+            tipoDeEntradaUsuario = "VIP";
+            precioEntradaUsuario = 30000;
             break;
         case 3:
             filaElegida = fila3;
+            tipoDeEntradaUsuario = "Preferencial";
+            precioEntradaUsuario = 15000;
             break;
         case 4:
             filaElegida = fila4;
+            tipoDeEntradaUsuario = "Preferencial";
+            precioEntradaUsuario = 15000;
             break;
         case 5:
             filaElegida = fila5;
+            tipoDeEntradaUsuario = "General";
+            precioEntradaUsuario = 10000;
             break;
         default:
             System.out.println("Por favor elija un numero del 1 al 5");
@@ -306,4 +375,16 @@ public static int pedirNumeroValido(Scanner sc, String mensaje, int min, int max
             System.out.println("Entrada inválida. Ingrese 's' para confirmar o 'n' para volver al menu inicial.");
         }
     }//cierre del metodo para validar entradas de confirmacion tipo S o N
+ 
+ //metodo para calcular descuento de adultos mayores
+   public static int costoTotal(int descuentoAplicado, int precioEntradaUsuario){
+        
+        int descuento = descuentoAplicado * precioEntradaUsuario / 100;
+        int costoTotal = precioEntradaUsuario - descuento;
+        return costoTotal;
+
+    }//cierre del metodo de costo total
+   
+   
+    
 }//final de la clase
